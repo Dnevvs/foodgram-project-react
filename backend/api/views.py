@@ -1,24 +1,70 @@
 from datetime import datetime
 
+from api.pagination import MyPagination
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet
+from recipes.models import (Favorites, Ingredient, Recipe, RecipeIngredient,
+                            Shopping_Cart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from users.models import Subscribe, User
 
-from .models import (Favorites, Ingredient, Recipe, RecipeIngredient,
-                     Shopping_Cart, Tag)
+from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import MyPagination
 from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
-from .serializers import (IngredientSerializer, RecipeGetSerializer,
-                          RecipePostSerializer, RecipeShortSerializer,
+from .serializers import (IngredientSerializer, MyUserSerializer,
+                          RecipeGetSerializer, RecipePostSerializer,
+                          RecipeShortSerializer, SubscribeSerializer,
                           TagSerializer)
-from .services import IngredientSearchFilter, RecipeFilter
+
+
+class MyUserViewSet(UserViewSet):
+    queryset = User.objects.all()
+    serializer_class = MyUserSerializer
+    pagination_class = MyPagination
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
+    def subscribe(self, request, **kwargs):
+        user = request.user
+        author_id = self.kwargs.get('id')
+        author = get_object_or_404(User, id=author_id)
+        if request.method == 'POST':
+            serializer = SubscribeSerializer(author,
+                                             data=request.data,
+                                             context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            Subscribe.objects.create(user=user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            subscription = get_object_or_404(Subscribe,
+                                             user=user,
+                                             author=author)
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(subscribing__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscribeSerializer(pages,
+                                         many=True,
+                                         context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(ReadOnlyModelViewSet):

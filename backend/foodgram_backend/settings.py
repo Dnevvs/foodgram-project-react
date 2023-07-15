@@ -13,6 +13,7 @@ ALLOWED_HOSTS = ['130.193.53.253', '127.0.0.1', 'localhost', 'firsttask.ddns.net
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
+    'recipes.apps.RecipesConfig',
     'foodgram_backend.apps.Foodgram_backendConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -92,9 +93,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DJOSER = {
     'SERIALIZERS': {
-        'user': 'users.serializers.MyUserSerializer',
-        'user_create': 'users.serializers.MyUserCreateSerializer',
-        'current_user' : 'users.serializers.MyUserSerializer',
+        'user': 'api.serializers.MyUserSerializer',
+        'user_create': 'api.serializers.MyUserCreateSerializer',
+        'current_user' : 'api.serializers.MyUserSerializer',
     },
     'PERMISSIONS': {
         'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],

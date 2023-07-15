@@ -1,26 +1,45 @@
-import base64
-
-from django.core.files.base import ContentFile
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status
+from djoser.serializers import UserCreateSerializer, UserSerializer
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer, ReadOnlyField
-from users.models import Subscribe
-from users.serializers import MyUserSerializer
+from users.models import Subscribe, User
 
-from .models import Ingredient, Recipe, RecipeIngredient, Tag
+from .imagefield import Base64ImageField
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
+class MyUserSerializer(UserSerializer):
+    is_subscribed = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
+
+    def get_is_subscribed(self, author):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Subscribe.objects.filter(user=user, author=author).exists()
+
+
+class MyUserCreateSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = tuple(User.REQUIRED_FIELDS) + (
+            User.USERNAME_FIELD,
+            'password',
+        )
 
 
 class TagSerializer(ModelSerializer):
@@ -151,18 +170,17 @@ class RecipePostSerializer(ModelSerializer):
             raise ValidationError({
                 'ingredients': 'Должен быть хотя бы один ингредиент'
             })
-        ingredients_cart = []
+        ingredients = set()
         for item in value:
-            ingredient = get_object_or_404(Ingredient, id=item['id'])
-            if ingredient in ingredients_cart:
-                raise ValidationError({
-                    'ingredients': 'Повтор ингридиента'
-                })
+            ingredients.add(frozenset(item))
             if int(item['amount']) <= 0:
                 raise ValidationError({
                     'amount': 'Количество ингредиента должно быть больше 0'
                 })
-            ingredients_cart.append(ingredient)
+        if len(value) != len(ingredients):
+            raise ValidationError({
+                'ingredients': 'Повтор ингридиента'
+            })
         return value
 
     def validate_tags(self, value):

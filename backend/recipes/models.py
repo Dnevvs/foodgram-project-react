@@ -13,7 +13,14 @@ class Tag(models.Model):
     color = ColorField(
         verbose_name='Цвет тега',
         unique=True,
-        default='#FF0000')
+        default='#FF0000',
+        validators=[
+            RegexValidator(
+                regex="^#([A-Fa-f0-9]{6})$",
+                message='Должен быть формат HEX!',
+            )
+        ],
+    )
     slug = models.SlugField(
         verbose_name='Слаг тэга',
         max_length=200,
@@ -21,7 +28,10 @@ class Tag(models.Model):
         validators=[
             RegexValidator(
                 regex='^[-a-zA-Z0-9_]+$',
-                message='Набор символов неверный', ), ])
+                message='Набор символов неверный',
+            ),
+        ]
+    )
 
     class Meta:
         verbose_name = 'Тэг'
@@ -57,7 +67,7 @@ class RecipeIngredient(models.Model):
         related_name='ingredients_cart',
         verbose_name='Ингредиенты рецепта',
     )
-    amount = models.IntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиента',
         validators=[MinValueValidator(1, 'Количество < 1')],
         default=1)
