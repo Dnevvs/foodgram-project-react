@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import UniqueConstraint
+from django.db.models import Sum, UniqueConstraint
+from django.http import HttpResponse
 from users.models import User
 
 
@@ -146,6 +149,32 @@ class Shopping_Cart(models.Model):
 
     def __str__(self):
         return f'Список покупок пользовтеля {self.user}'
+
+    def shopping_cart_to_txt(self, request):
+        user = request.user
+        shopping_cart = f'{user.get_full_name()}:\n\nСписок покупок:\n\n'
+        if not user.shopping_cart.exists():
+            shopping_cart += 'Нет покупок'
+        else:
+            ingredients = RecipeIngredient.objects.filter(
+                recipes__shopping_cart__user=request.user
+            ).values(
+                'ingredient__name',
+                'ingredient__measurement_unit'
+            ).annotate(amount=Sum('amount'))
+            shopping_cart += '\n'.join([
+                f'- {ingredient["ingredient__name"]} '
+                f'({ingredient["ingredient__measurement_unit"]})'
+                f' - {ingredient["amount"]}'
+                for ingredient in ingredients
+            ])
+        shopping_cart += f'\n\n{datetime.today():%Y-%m-%d}\n'
+        filename = f'{user.username}_shopping_cart.txt'
+        response = HttpResponse(
+            shopping_cart, content_type='text.txt; charset=utf-8'
+        )
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
 
     class Meta:
         verbose_name = 'Список покупок'

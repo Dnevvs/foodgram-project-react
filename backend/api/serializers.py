@@ -9,7 +9,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer, ReadOnlyField
 from users.models import Subscribe, User
 
-from .imagefield import Base64ImageField
+from .custom_fields import Base64ImageField
 
 
 class MyUserSerializer(UserSerializer):

@@ -1,17 +1,12 @@
-from datetime import datetime
-
-from django.db.models import Sum
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favorites, Ingredient, Recipe, RecipeIngredient,
+from recipes.models import (Favorites, Ingredient, Recipe,
                             Shopping_Cart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.models import Subscribe, User
 
@@ -142,26 +137,4 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        user = request.user
-        if not user.shopping_cart.exists():
-            return Response(status=HTTP_400_BAD_REQUEST)
-        ingredients = RecipeIngredient.objects.filter(
-            recipes__shopping_cart__user=request.user
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
-        shopping_cart = f'{user.get_full_name()}:\n\nСписок покупок:\n\n'
-        shopping_cart += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
-            f' - {ingredient["amount"]}'
-            for ingredient in ingredients
-        ])
-        shopping_cart += f'\n\n{datetime.today():%Y-%m-%d}\n'
-        filename = f'{user.username}_shopping_cart.txt'
-        response = HttpResponse(
-            shopping_cart, content_type='text.txt; charset=utf-8'
-        )
-        response['Content-Disposition'] = f'attachment; filename={filename}'
-        return response
+        return Shopping_Cart.shopping_cart_to_txt(self, request)
