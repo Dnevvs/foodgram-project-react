@@ -1,8 +1,8 @@
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Favorites, Ingredient, Recipe,
-                            Shopping_Cart, Tag)
+from recipes.models import Favorites, Ingredient, Recipe, Shopping_Cart, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -40,12 +40,11 @@ class MyUserViewSet(UserViewSet):
             serializer.is_valid(raise_exception=True)
             Subscribe.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            subscription = get_object_or_404(Subscribe,
-                                             user=user,
-                                             author=author)
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        subscription = get_object_or_404(Subscribe,
+                                         user=user,
+                                         author=author)
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
@@ -137,4 +136,11 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        return Shopping_Cart.shopping_cart_to_txt(self, request)
+        user = request.user
+        shopping_cart_txt = Shopping_Cart.shopping_cart_to_txt(user)
+        filename = f'{user.username}_shopping_cart.txt'
+        response = HttpResponse(
+            shopping_cart_txt, content_type='text.txt; charset=utf-8'
+        )
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
