@@ -5,6 +5,14 @@
 ```
     firsttask.ddns.net
 ```
+email для логина
+```
+   dnevvs@yandex.ru
+```
+пароль
+```
+   adfmin
+```
 ### 1.	Клонируйте репозиторий kittygram_final с проектом Kittygram со своего аккаунта на GitHub на локальный компьютер.
 
 ```
