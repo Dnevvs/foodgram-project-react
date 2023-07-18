@@ -75,7 +75,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend/
-          npm i --force
+          npm install react-scripts@latest
       - name: Test frontend
         run: |
           cd frontend/
