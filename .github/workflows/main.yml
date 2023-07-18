@@ -32,7 +32,7 @@ jobs:
         pip install -r ./backend/requirements.txt 
     - name: Test with flake8 and django tests
       env:
-        POSTGRES_DB: foodygram
+        POSTGRES_DB: foodgram
         POSTGRES_USER: foodgram_user
         POSTGRES_PASSWORD: foodgram_password
         DB_NAME: foodgram
