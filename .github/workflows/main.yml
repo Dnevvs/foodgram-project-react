@@ -75,7 +75,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend/
-          npm install react-scripts@latest
+          yarn
       - name: Test frontend
         run: |
           cd frontend/
