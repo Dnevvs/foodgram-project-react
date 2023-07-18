@@ -1,6 +1,5 @@
 import logo from './logo.svg';
 import './App.css';
-//import { Switch, Route, useHistory, Redirect, useLocation } from 'react-router-dom'
 import { Switch, Route, useHistory, Redirect } from 'react-router-dom'
 import React, { useState, useEffect } from 'react'
 import { Header, Footer, ProtectedRoute } from './components'
@@ -31,7 +30,6 @@ function App() {
   const [ loading, setLoading ] = useState(false)
   const [ orders, setOrders ] = useState(0)
   const [ menuToggled, setMenuToggled ] = useState(false)
-//  const location = useLocation()
 
   const registration = ({
     email,
