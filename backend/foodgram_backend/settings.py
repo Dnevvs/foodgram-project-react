@@ -8,7 +8,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'TEST')
 
 DEBUG = (os.getenv('DEBUG', 'False') == 'True')
 
-ALLOWED_HOSTS = ['130.193.53.253', '127.0.0.1', 'localhost', 'firsttask.ddns.net']
+ALLOWED_HOSTS = ['158.160.23.82', '127.0.0.1', 'localhost', 'firsttask.ddns.net']
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',

@@ -58,7 +58,7 @@ email для логина
 ```
 ```
 server {
-    server_name 130.193.53.253 firsttask.ddns.net;
+    server_name 158.160.23.82 firsttask.ddns.net;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -78,7 +78,7 @@ server {
     if ($host = firsttask.ddns.net) {
         return 301 https://$host$request_uri;
     }
-    server_name 130.193.53.253 firsttask.ddns.net;
+    server_name 158.160.23.82` firsttask.ddns.net;
     listen 80;
     return 404;
 }
